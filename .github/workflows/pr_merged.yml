@@ -1,0 +1,32 @@
+name: get pull request merged info for feishu
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  pr-merged:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: check out
+        uses: actions/checkout@v3
+
+      - name: setup python...
+        uses: actions/setup-python@v1
+
+      - name: python install...
+        run: |
+          python -m pip install requests
+          python -m pip install fsbot
+
+      - name: set PR_INFO
+        run: |
+          echo pr_title=$(jq --raw-output .pull_request.title "$GITHUB_EVENT_PATH") >> $GITHUB_ENV
+          echo pr_url=$(jq --raw-output .pull_request.html_url "$GITHUB_EVENT_PATH") >> $GITHUB_ENV
+          echo pr_user=$(jq --raw-output .pull_request.user.login "$GITHUB_EVENT_PATH") >> $GITHUB_ENV 
+          echo pr_type="merged" >> $GITHUB_ENV 
+          echo merge_user=$(jq --raw-output .sender.login "$GITHUB_EVENT_PATH") >> $GITHUB_ENV
+          echo "This PR was approved"
